@@ -2,7 +2,7 @@
 id: regulatory-control-integrity
 name: Security, Audit, and Regulatory Control Integrity
 mode: warning
-# Optional extra (commented out in the V2 config). Set to true to turn it on.
+# DISABLED: example only (commented out in the V2 config). Set enabled: true to run this check.
 enabled: false
 ---
 

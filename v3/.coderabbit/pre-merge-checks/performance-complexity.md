@@ -2,7 +2,7 @@
 id: performance-complexity
 name: Performance and Algorithmic Complexity Review
 mode: warning
-# Optional extra (commented out in the V2 config). Set to true to turn it on.
+# DISABLED: example only (commented out in the V2 config). Set enabled: true to run this check.
 enabled: false
 ---
 
