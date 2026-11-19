@@ -24,7 +24,7 @@ V3 isn't just a version bump. It changes the shape of the configuration:
 | `reviews.pre_merge_checks.override_requested_reviewers_only` | `reviews.behavior.auto_approvals.override_requested_reviewers_only` | `false` |
 | `reviews.commit_status` + `reviews.review_progress` | `reviews.behavior.status.progress_updates` | `true` |
 | `reviews.fail_commit_status` | `reviews.behavior.status.fail_on_error` | `true` |
-| `reviews.auto_review.*` | `reviews.auto_review.*` | unchanged |
+| `reviews.auto_review.enabled` / `drafts` / `base_branches` | `reviews.auto_review.enabled` / `drafts` / `base_branches` | unchanged (`true` / `true` / `[".*"]`) |
 | `reviews.review_details` | `reviews.output.review_details` | `false` |
 | `reviews.high_level_summary` + `high_level_summary_in_walkthrough` | `reviews.output.summary.placement` | `walkthrough` |
 | `reviews.high_level_summary_instructions` | `reviews.output.summary.instructions` | still commented out |
@@ -34,6 +34,13 @@ V3 isn't just a version bump. It changes the shape of the configuration:
 | `reviews.related_issues` / `related_prs` | `reviews.output.walkthrough.related_issues` / `related_prs` | `true` |
 | `reviews.suggested_labels` + `auto_apply_labels` | `reviews.output.metadata.labels.mode` | `suggest` |
 | `reviews.suggested_reviewers` + `auto_assign_reviewers` | `reviews.output.metadata.reviewers.mode` | `suggest` |
+
+Other `reviews.auto_review` keys don't all keep their v2 names. This example doesn't use them, but if your v2 config does:
+
+- `auto_incremental_review` → `reviews.auto_review.incremental_review`
+- `auto_pause_after_reviewed_commits` → `reviews.auto_review.pause_after_reviewed_commits`
+- `ignore_title_keywords`, `ignore_usernames` → managed in the web interface. There's no v3 key.
+- `description_keyword`, `labels` → same names under `reviews.auto_review`
 
 Empty v2 lists and maps (`labeling_instructions`, `mutually_exclusive_groups`, `suggested_reviewers_instructions`) were dropped because they match the v3 defaults.
 
