@@ -1,24 +1,27 @@
 # CodeRabbit Configuration (v3 schema)
 
-This folder contains the [v2 example](../v2) migrated to the **v3 schema**:
+This folder contains an example CodeRabbit configuration written against the **v3 schema**:
 
 - [`.coderabbit.yaml`](./.coderabbit.yaml): the v3 config (settings only)
-- [`.coderabbit/instructions/`](./.coderabbit/instructions): path instructions, as Markdown documents
+- [`.coderabbit/instructions/`](./.coderabbit/instructions): review instructions, as Markdown documents
 - [`.coderabbit/pre-merge-checks/`](./.coderabbit/pre-merge-checks): custom pre-merge checks, as Markdown documents
+- [`CHANGELOG.md`](./CHANGELOG.md): how this example was migrated from [v2](../v2), including what moved, what changed and what was removed
 
 > **Attribution:** This config is migrated from the [`v2/`](../v2) example, which is forked from the [Enterprise-style CodeRabbit configuration](https://gist.github.com/iantybo/4c872c62df0c256a839ef7299675cff1) by [iantybo](https://github.com/iantybo).
 
 > [!WARNING]
 > **V3 is a limited preview.** It works only for eligible GitHub Cloud organizations on CodeRabbit Cloud. Adding `version: 3`, creating `.coderabbit/` or turning on early access does **not** enroll your organization. Use v3 only after CodeRabbit confirms access. Otherwise, use the [v2 example](../v2).
 
-## What changed in v3
+## How a v3 config is structured
 
-V3 isn't just a version bump. It changes the shape of the configuration:
+A v3 config has two parts:
 
-- **Selected by `version: 3`**, not by the schema comment. V3 treats unknown, misspelled and moved keys as errors at every level of nesting.
-- **Settings are regrouped** under `reviews.behavior`, `reviews.auto_review`, `reviews.output`, `reviews.tools` and `fun`.
-- **Instructions and checks move out of YAML** into Markdown files with YAML front matter under `.coderabbit/`. A `pre_merge_checks` key anywhere in a v3 file is a configuration error.
-- **Some settings are fixed, or managed outside the file.** See the tables below.
+1. **`.coderabbit.yaml`** holds **settings only**: review behaviour, auto-review, output and the "fun" options. It must start with `version: 3`. Unknown or misspelled keys are errors at every level.
+2. **`.coderabbit/`** holds **Markdown documents** with YAML front matter:
+   - `instructions/` shapes review feedback for matching files. Instructions don't produce a check result.
+   - `pre-merge-checks/` defines conditions checked against the PR, each with a reported pass or fail result.
+
+V3 has no `path_instructions` or `pre_merge_checks` keys in YAML. That content lives only in these documents.
 
 ## How to use it
 
@@ -36,65 +39,75 @@ The `.coderabbit/` documents must live in the repository under review. CodeRabbi
 
 To check the result, open a test PR and comment `@coderabbitai configuration` to confirm that the v3 source was used. That command doesn't show whether the `.coderabbit/` documents loaded, so also read the review to confirm that the instructions and checks applied.
 
-## Migration map
+## Writing instructions and checks
 
-### Settings that moved
+### Each file is one document
 
-| v2 key | v3 key | Value |
+Every `.md` file has a single front matter block with one `id`, one scope (`paths` / `exclude`) and one `enabled` flag, so **each file defines one instruction or one check**.
+
+```markdown
+---
+id: api-security            # identity: up to 50 chars, letters/digits/._-
+name: API security          # optional display name, 1–50 chars
+paths:                      # optional; omit to match every path in scope
+  - "src/api/**"
+exclude:                    # optional; exclusions beat paths
+  - "**/*.test.ts"
+enabled: true               # optional; false turns the document off
+---
+
+Check that every new endpoint validates its input and requires authentication.
+```
+
+Checks also accept `mode` (`off`, `warning` or `error`; default `warning`) and `report` (`platform` or `coderabbit`; default `platform`).
+
+### Recommended convention: one file per concern and scope
+
+- **Group rules that share a scope and purpose** in one file. For example, `high-signal-review.md` holds four related bullets that all apply to `**/*`.
+- **Use separate files when:**
+  - **The scope differs**, for example rules for `src/api/**` versus `db/migrations/**`. One file has only one `paths` list.
+  - **You want to toggle rules independently.** `enabled` applies to the whole document, so you can't turn off one rule inside a combined file.
+  - **You may override a rule per package.** A nested `.coderabbit/` (for example `services/api/.coderabbit/instructions/`) with the same `id` replaces the parent document for that directory, or turns it off with `enabled: false`. Separate IDs let you override one rule without touching the others.
+- **Name files after their `id`** (for example `id: mas-trm` → `mas-trm.md`). CodeRabbit identifies documents by `id`, not file name, but matching names make files easy to find.
+- **Pair instructions with their checks.** In this example, each compliance framework has an instruction that tags findings (`govtech-im8.md`, `mas-trm.md`) and a matching check that reports on those tags (`govtech-im8-compliance.md`, `mas-trm-compliance.md`).
+- **Keep optional rules as disabled documents** (`enabled: false`) rather than deleting them, so they're easy to turn on later.
+
+### Rules and limits
+
+- `id` must be unique per kind (instruction or check) and scope. A duplicate is an error, even across different file names.
+- Unknown front matter fields and duplicate YAML keys are errors. One invalid document rejects the whole set.
+- An enabled document needs a non-empty body.
+- Patterns are relative to the directory that contains `.coderabbit/`. They can't be absolute or contain `..`.
+- Subfolders inside `instructions/` and `pre-merge-checks/` are allowed for organization, and they don't create new scopes. `README.md` files are ignored.
+- Limits: 100 documents, 2 MiB total, 20,000 characters per instruction body, 10,000 characters per check body.
+
+## What this example sets up
+
+**Settings (`.coderabbit.yaml`)**
+- A serious, precise review tone that says whether a change sits on a path that could cause a production outage
+- `chill` profile, auto-review on all base branches including drafts
+- Summary inside the walkthrough, with a collapsed walkthrough that covers changed files, review status and related issues and PRs
+- Suggested (not auto-applied) labels and reviewers
+- Progress reporting on, with a failing status on errors; auto-approvals off
+
+**Documents (`.coderabbit/`)**
+
+| Document | Kind | Status |
 | --- | --- | --- |
-| `inheritance` | `inheritance` | `false` |
-| `tone_instructions` | `fun.tone_instructions` | unchanged (v3 max 250 chars) |
-| `chat.art` | `fun.art` | `false` |
-| `reviews.in_progress_fortune` | `fun.in_progress_fortune` | `false` |
-| `reviews.profile` | `reviews.behavior.profile` | `chill` |
-| `reviews.auto_approvals.enabled` | `reviews.behavior.auto_approvals.enabled` | `false` |
-| `reviews.pre_merge_checks.override_requested_reviewers_only` | `reviews.behavior.auto_approvals.override_requested_reviewers_only` | `false` |
-| `reviews.commit_status` + `reviews.review_progress` | `reviews.behavior.status.progress_updates` | `true` |
-| `reviews.fail_commit_status` | `reviews.behavior.status.fail_on_error` | `true` |
-| `reviews.auto_review.*` | `reviews.auto_review.*` | unchanged |
-| `reviews.review_details` | `reviews.output.review_details` | `false` |
-| `reviews.high_level_summary` + `high_level_summary_in_walkthrough` | `reviews.output.summary.placement` | `walkthrough` |
-| `reviews.high_level_summary_instructions` | `reviews.output.summary.instructions` | still commented out |
-| `reviews.collapse_walkthrough` | `reviews.output.walkthrough.collapse` | `true` |
-| `reviews.changed_files_summary` | `reviews.output.walkthrough.changed_files_summary` | `true` |
-| `reviews.review_status` | `reviews.output.walkthrough.review_status` | `true` |
-| `reviews.related_issues` / `related_prs` | `reviews.output.walkthrough.related_issues` / `related_prs` | `true` |
-| `reviews.suggested_labels` + `auto_apply_labels` | `reviews.output.metadata.labels.mode` | `suggest` |
-| `reviews.suggested_reviewers` + `auto_assign_reviewers` | `reviews.output.metadata.reviewers.mode` | `suggest` |
+| `govtech-im8.md` | instruction | enabled: tags findings with `[Govtech-IM8]` |
+| `mas-trm.md` | instruction | enabled: tags findings with `[MAS-TRM]` |
+| `govtech-im8-compliance.md` | check | `warning`: fails if any finding is tagged `[Govtech-IM8]` |
+| `mas-trm-compliance.md` | check | `warning`: fails if any finding is tagged `[MAS-TRM]` |
+| `agent-instructions-security.md` | instruction | disabled: hardening for agent instruction files |
+| `high-signal-review.md` | instruction | disabled: blocking or high-confidence issues only |
+| `regulatory-control-integrity.md` | check | disabled: security, audit and regulatory controls |
+| `performance-complexity.md` | check | disabled: performance and algorithmic complexity |
 
-Empty v2 lists and maps (`labeling_instructions`, `mutually_exclusive_groups`, `suggested_reviewers_instructions`) were dropped because they match the v3 defaults.
-
-### Settings that became Markdown documents
-
-| v2 entry | v3 document | Status |
-| --- | --- | --- |
-| `path_instructions` (GovTech IM8) | `instructions/govtech-im8.md` | enabled |
-| `path_instructions` (MAS TRM) | `instructions/mas-trm.md` | enabled |
-| commented-out agent-file hardening instruction | `instructions/agent-instructions-security.md` | `enabled: false` |
-| commented-out high-signal review instruction | `instructions/high-signal-review.md` | `enabled: false` |
-| `custom_checks` (Govtech IM8 Compliance) | `pre-merge-checks/govtech-im8-compliance.md` | `mode: warning` |
-| `custom_checks` (MAS TRM Compliance) | `pre-merge-checks/mas-trm-compliance.md` | `mode: warning` |
-| commented-out security/audit/regulatory check | `pre-merge-checks/regulatory-control-integrity.md` | `enabled: false` |
-| commented-out performance/complexity check | `pre-merge-checks/performance-complexity.md` | `enabled: false` |
-
-The optional extras that were commented out in v2 are kept as **disabled documents**. To turn one on, set `enabled: true` in its front matter, or delete the `enabled` line.
-
-### Settings that were removed
-
-| v2 key | Why it's gone in v3 |
-| --- | --- |
-| `reviews.poem`, `reviews.sequence_diagrams`, `reviews.estimate_code_review_effort`, `reviews.assess_linked_issues` | Fixed **off** in v3 |
-| `reviews.enable_prompt_for_ai_agents`, `chat.auto_reply` | Fixed **on** in v3 |
-| `reviews.pre_merge_checks.title` / `description` / `issue_assessment` / `docstrings` | Built-in checks are off in v3 (they were already off in the v2 example) |
-| `knowledge_base` (automatic linking, web search, code guidelines) | Managed in the web interface, not the file |
-| `reviews.finishing_touches`, `reviews.post_merge_actions` | Managed in the web interface, not the file |
-| `reviews.slop_detection`, `reviews.auto_title_placeholder`, `reviews.auto_title_instructions` | No v3 key. Check the resolved value with `@coderabbitai configuration` |
-
-**Re-create in the UI:** the v2 example turned on Knowledge Base automatic linking and web search. In v3, an admin has to configure these in the CodeRabbit web interface.
+To turn on a disabled document, set `enabled: true` in its front matter, or delete the `enabled` line.
 
 ## References
 
 - [Configuration V3 reference](https://docs.coderabbit.ai/reference/configuration-v3)
-- [Migrate configuration to V3](https://docs.coderabbit.ai/configuration/guides/migrate-to-v3)
 - [Instruction and check documents](https://docs.coderabbit.ai/configuration/documents)
+- [Migrate configuration to V3](https://docs.coderabbit.ai/configuration/guides/migrate-to-v3)
 - [v3 JSON schema](https://coderabbit.ai/integrations/schema.v3.json)
