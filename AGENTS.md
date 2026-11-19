@@ -16,8 +16,15 @@ A collection of example [CodeRabbit](https://coderabbit.ai) configurations (`.co
 ├── v2/                  # Examples using the v2 schema
 │   ├── .coderabbit.yaml
 │   └── README.md
-└── v3/                  # Examples using the v3 schema (planned)
+└── v3/                  # Examples using the v3 schema (preview)
+    ├── .coderabbit.yaml # Settings only
+    ├── .coderabbit/     # Instructions and checks as Markdown documents
+    │   ├── instructions/
+    │   └── pre-merge-checks/
+    └── README.md
 ```
+
+In v3, path instructions and custom pre-merge checks are not YAML keys. They are Markdown files with front matter under `.coderabbit/`. See [Instruction and check documents](https://docs.coderabbit.ai/configuration/documents).
 
 - One top-level folder per schema version (`v2/`, `v3/`, …).
 - Each folder holds a `.coderabbit.yaml` and a `README.md` that explains it.

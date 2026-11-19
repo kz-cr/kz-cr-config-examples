@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v3.json
+# CodeRabbit V3 Configuration Reference: https://docs.coderabbit.ai/reference/configuration-v3
+# Migration guide (V2 -> V3): https://docs.coderabbit.ai/configuration/guides/migrate-to-v3
+#
+# V3 is a limited preview. Adding `version: 3` does not enroll an organization.
+# Path instructions and custom pre-merge checks live as Markdown documents in
+# .coderabbit/instructions/ and .coderabbit/pre-merge-checks/ (not in this file).
+
+version: 3
+
+# Use parent settings for any values not defined here.
+# https://docs.coderabbit.ai/configuration/configuration-inheritance#cloud/saas-deployment
+inheritance: false
+
+reviews:
+  behavior:
+    # UX Settings
+    profile: chill
+
+    # Enterprise Quality Gates
+    auto_approvals:
+      enabled: false
+      override_requested_reviewers_only: false
+
+    # CI/CD UX Settings
+    status:
+      progress_updates: true
+      fail_on_error: true
+
+  # Review all branches & all draft PRs
+  auto_review:
+    enabled: true
+    drafts: true
+    base_branches: [ ".*" ]
+
+  output:
+    review_details: false
+
+    # PR Summary
+    summary:
+      placement: walkthrough
+      # instructions: >
+      #   - Give a brief executive summary explaining what changed, why it matters, which components are affected, and the most significant risks or validation considerations
+
+    walkthrough:
+      collapse: true
+      changed_files_summary: true
+      review_status: true
+      # Issue Tracking
+      related_issues: true
+      related_prs: true
+
+    metadata:
+      # Labels Automatically Applied
+      labels:
+        mode: suggest
+      # Reviewer Auto-assignment
+      reviewers:
+        mode: suggest
+
+fun:
+  tone_instructions: >
+    - Serious, clear, precise language only.
+    - Indicate if the code is in the path that would cause a production outage or not.
+  art: false
+  in_progress_fortune: false

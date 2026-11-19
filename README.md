@@ -9,13 +9,13 @@ CodeRabbit can be configured with a YAML file (`.coderabbit.yaml`) instead of cl
 | Folder | Schema | Description |
 | --- | --- | --- |
 | [`v2/`](./v2) | [v2](https://coderabbit.ai/integrations/schema.v2.json) | Example `.coderabbit.yaml` using the v2 schema, with custom pre-merge compliance checks (GovTech IM8, MAS TRM) |
-| `v3/` | v3 | Coming soon |
+| [`v3/`](./v3) | [v3](https://coderabbit.ai/integrations/schema.v3.json) (preview) | The `v2/` example migrated to v3: a settings-only `.coderabbit.yaml`, plus instructions and checks as Markdown documents in `.coderabbit/` |
 
 Each folder has its own `README.md` that explains what its config does.
 
 ## Attribution
 
-- The `v2/` config is forked from the [Enterprise-style CodeRabbit configuration](https://gist.github.com/iantybo/4c872c62df0c256a839ef7299675cff1) by [iantybo](https://github.com/iantybo).
+- The `v2/` config, and the `v3/` migration of it, are based on the [Enterprise-style CodeRabbit configuration](https://gist.github.com/iantybo/4c872c62df0c256a839ef7299675cff1) by [iantybo](https://github.com/iantybo).
 
 ## Using an example
 
