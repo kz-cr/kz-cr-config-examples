@@ -1,4 +1,4 @@
-# Changelog: v2 → v3 migration
+# Migration: v2 → v3
 
 This file records how the [v2 example](../v2) was migrated to the v3 schema, following the [V3 reference](https://docs.coderabbit.ai/reference/configuration-v3) and the [migration guide](https://docs.coderabbit.ai/configuration/guides/migrate-to-v3).
 

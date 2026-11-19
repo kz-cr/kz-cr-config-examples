@@ -5,7 +5,7 @@ This folder contains an example CodeRabbit configuration written against the **v
 - [`.coderabbit.yaml`](./.coderabbit.yaml): the v3 config (settings only)
 - [`.coderabbit/instructions/`](./.coderabbit/instructions): review instructions, as Markdown documents
 - [`.coderabbit/pre-merge-checks/`](./.coderabbit/pre-merge-checks): custom pre-merge checks, as Markdown documents
-- [`CHANGELOG.md`](./CHANGELOG.md): how this example was migrated from [v2](../v2), including what moved, what changed and what was removed
+- [`MIGRATION.md`](./MIGRATION.md): how this example was migrated from [v2](../v2), including what moved, what changed and what was removed
 
 > **Attribution:** This config is migrated from the [`v2/`](../v2) example, which is forked from the [Enterprise-style CodeRabbit configuration](https://gist.github.com/iantybo/4c872c62df0c256a839ef7299675cff1) by [iantybo](https://github.com/iantybo).
 

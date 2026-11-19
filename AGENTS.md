@@ -21,7 +21,7 @@ A collection of example [CodeRabbit](https://coderabbit.ai) configurations (`.co
     ├── .coderabbit/     # Instructions and checks as Markdown documents
     │   ├── instructions/
     │   └── pre-merge-checks/
-    ├── CHANGELOG.md     # How the example was migrated from v2
+    ├── MIGRATION.md     # How the example was migrated from v2
     └── README.md
 ```
 
