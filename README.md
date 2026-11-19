@@ -13,6 +13,10 @@ CodeRabbit can be configured with a YAML file (`.coderabbit.yaml`) instead of cl
 
 Each folder has its own `README.md` that explains what its config does.
 
+## Attribution
+
+- The `v2/` config is forked from the [Enterprise-style CodeRabbit configuration](https://gist.github.com/iantybo/4c872c62df0c256a839ef7299675cff1) by [iantybo](https://github.com/iantybo).
+
 ## Using an example
 
 1. Pick the folder for the schema version you want and open its `.coderabbit.yaml`.

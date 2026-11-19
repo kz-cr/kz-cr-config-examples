@@ -4,6 +4,8 @@ This folder contains an example CodeRabbit configuration written against the **v
 
 - [`.coderabbit.yaml`](./.coderabbit.yaml): the example config
 
+> **Attribution:** This config comes from [this gist](https://gist.github.com/kz-cr/b33b0f277c78bf0f55839acf3d2814bc), which is a fork of the original [Enterprise-style CodeRabbit configuration](https://gist.github.com/iantybo/4c872c62df0c256a839ef7299675cff1) by [iantybo](https://github.com/iantybo). Credit for the original config goes to its author.
+
 ## What is a CodeRabbit config?
 
 A CodeRabbit config is a YAML document that controls how CodeRabbit reviews pull requests. It lets you set up CodeRabbit as code instead of clicking through settings, so the setup can be versioned, reviewed and reused across repositories.
