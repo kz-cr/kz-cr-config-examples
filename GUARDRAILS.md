@@ -1,6 +1,9 @@
 # Guardrails: protecting CodeRabbit checks and instructions
 
-CodeRabbit configuration lives in the repository, so **anyone who can open a pull request may be able to change the rules that review it**. For example, they could set `enabled: false` on a compliance check, switch its `mode` to `off`, or weaken an instruction. This guide explains how to stop that on GitHub, GitLab, Bitbucket and Azure DevOps.
+CodeRabbit configuration lives in the repository, so **anyone who can open a pull request may be able to change the rules that review it**. For example, they could set `enabled: false` on a compliance check, switch its `mode` to `off`, or weaken an instruction. This guide explains how to stop that for **v3 configurations**: a settings-only `.coderabbit.yaml` plus instruction and check documents in `.coderabbit/`. It covers GitHub, GitLab, Bitbucket and Azure DevOps.
+
+> [!NOTE]
+> v3 configuration and `.coderabbit/` documents are currently supported only on **GitHub Cloud** with CodeRabbit Cloud. The GitLab, Bitbucket and Azure DevOps sections protect `.coderabbit.yaml` with the same controls you'd use there.
 
 ## The problem
 
@@ -14,7 +17,7 @@ By default (**Auto** mode), CodeRabbit reviews a pull request with the configura
 | Bitbucket Cloud / Data Center | opened it from a branch in the same repository (any non-fork PR) | No (Auto only) | No |
 | Azure DevOps | opened it from a branch in the same repository (any non-fork PR) | No (Auto only) | No |
 
-PRs from forks always use the configuration at the base commit.
+PRs from forks never use their own configuration. Under **Auto** they use the configuration at the base commit. Under **Default branch** they use the latest default-branch configuration, and under **Custom** the named branch.
 
 So, outside GitHub Cloud's pinning option, **a trusted PR that edits the config is reviewed using its own edits**. A CodeRabbit pass on a PR that also changes CodeRabbit config can't be trusted on its own. A human owner has to approve the config change.
 
@@ -22,8 +25,8 @@ So, outside GitHub Cloud's pinning option, **a trusted PR that edits the config 
 
 | File | Holds | Relevant on |
 | --- | --- | --- |
-| `.coderabbit.yaml` / `.coderabbit.yml` | Settings. In v2, also `path_instructions` and `custom_checks` | All platforms |
-| `.coderabbit/**` (root **and nested**, e.g. `services/api/.coderabbit/`) | v3 / directory instructions and checks | GitHub Cloud |
+| `.coderabbit.yaml` / `.coderabbit.yml` | Settings (`version: 3`) | All platforms |
+| `.coderabbit/**` (root **and nested**, e.g. `services/api/.coderabbit/`) | Instructions and pre-merge checks | GitHub Cloud |
 | `CODEOWNERS` (wherever your platform keeps it) | Who must approve changes to the files above | All platforms that use one |
 
 Always protect the `CODEOWNERS` file itself. Otherwise someone can remove the rule in the same PR.
@@ -36,18 +39,15 @@ Always protect the `CODEOWNERS` file itself. Otherwise someone can remove the ru
 
 ## Layer 1: CodeRabbit settings (all platforms)
 
-- **Global overrides** (*Review settings → Organization defaults → View mode: Global overrides*): pin the keys teams must not change. Repository files, PR commands and PR descriptions can't override them. Global overrides use **v2 keys**. For example, to lock the status check:
-
-  ```yaml
-  reviews:
-    review_progress: true
-    commit_status: true
-    fail_commit_status: true
-  ```
-
-  Lists in global overrides are **merged** into the repository's lists rather than replacing them. Before you rely on global overrides to enforce org-wide instructions or checks, confirm how they combine with your schema version (especially v3 documents) with CodeRabbit.
+- **Global overrides** (*Review settings → Organization defaults → View mode: Global overrides*): where they're available and honored, they pin the keys teams must not change, such as the status check settings. Repository files, PR commands and PR descriptions can't override them. Limits:
+  - **Organizations on the V3 settings preview can't save them.** Overrides use the V2 schema, and the V2 overrides editor doesn't save changes for these organizations. For a v3 organization, rely on the configuration source and platform controls below.
+  - **Workspace settings take over.** When an organization has *Use workspace settings* on, its organization overrides are ignored. Set them in the workspace instead (*Workspace management → CodeRabbit configuration*).
+  - **Self-hosted CodeRabbit has no global overrides** at either scope.
+  - The docs don't say whether global overrides apply to `.coderabbit/` documents. Confirm with CodeRabbit before you rely on them for org-wide instructions or checks.
 
 - **Configuration source (GitHub Cloud only):** set it to **Default branch** and turn **off** *Allow configuration changes from trusted PRs*. CodeRabbit then always reads config (and `.coderabbit/` documents) from the default branch, so a PR can't change its own review. Alternatively, use **Custom** to pin a dedicated config branch, and lock that branch to admins. Only organization admins can change this setting.
+
+  **Watch for fallback to Auto.** If the saved source later becomes unavailable or invalid (for example, the **Custom** branch is deleted or its file is invalid), reviews fall back to **Auto**. Trusted PRs can then change their own review again. The review shows a warning, and **Run configuration** reads, for example, `Auto (fallback from Default branch)`. If you see this, fix the source to restore the guarantee.
 
 - Check what a review actually used: comment `@coderabbitai configuration`, and read **Run configuration** in the review info. It shows the source mode, branch and commit. That command doesn't list `.coderabbit/` documents.
 
@@ -62,10 +62,13 @@ Always protect the `CODEOWNERS` file itself. Otherwise someone can remove the ru
    /.coderabbit.yaml     @your-org/compliance
    /.coderabbit.yml      @your-org/compliance
    .coderabbit/          @your-org/compliance   # matches root and nested folders
+   # Protect every CODEOWNERS location, so nobody can add a higher-priority file
    /.github/CODEOWNERS   @your-org/compliance
+   /CODEOWNERS           @your-org/compliance
+   /docs/CODEOWNERS      @your-org/compliance
    ```
 
-   Put these lines **at the bottom** of the file. The last matching pattern wins, so a broader rule further down would otherwise override them.
+   Put these lines **at the bottom** of the file. The last matching pattern wins, so a broader rule further down would otherwise override them. GitHub uses the first `CODEOWNERS` file it finds, checking `.github/`, then the root, then `docs/`. Owning all three paths means creating a new, higher-priority file also needs compliance approval.
 
 2. **Protect the default branch** with a branch protection rule or a ruleset:
    - Require a pull request before merging.
@@ -88,10 +91,14 @@ Always protect the `CODEOWNERS` file itself. Otherwise someone can remove the ru
    [CodeRabbit configuration][1] @your-group/compliance
    /.coderabbit.yaml
    /.coderabbit.yml
+   /CODEOWNERS
+   /docs/CODEOWNERS
    /.gitlab/CODEOWNERS
    ```
 
-   GitLab doesn't read `.coderabbit/` documents. On GitLab, instructions and checks live in `.coderabbit.yaml` (v2 `path_instructions` and `custom_checks`).
+   GitLab uses the first `CODEOWNERS` file it finds, checking the root, then `docs/`, then `.gitlab/`. Listing all three locations means adding or moving the file also needs compliance approval.
+
+   GitLab doesn't currently support v3 or read `.coderabbit/` documents, so `.coderabbit.yaml` is the file to guard.
 
 2. **Protect the default branch** (*Settings → Repository → Protected branches*):
    - Allowed to push and merge: **No one** for direct pushes, and Maintainers for merges.
@@ -107,7 +114,7 @@ Always protect the `CODEOWNERS` file itself. Otherwise someone can remove the ru
 
 ### Bitbucket (Cloud and Data Center)
 
-Bitbucket trusts **every non-fork PR**, so anyone with write access can change config in a PR and have it apply to that PR's review.
+Bitbucket trusts **every non-fork PR**, so anyone with write access can change config in a PR and have it apply to that PR's review. Bitbucket doesn't currently support v3 or read `.coderabbit/` documents, so `.coderabbit.yaml` is the file to guard.
 
 1. **Add `.bitbucket/CODEOWNERS`** so the right people are added as reviewers automatically. Bitbucket uses the file **from the PR's target branch**, and rules lower in the file take precedence.
 
@@ -151,20 +158,20 @@ Azure DevOps has no `CODEOWNERS` file. Use **branch policies** on the default br
 
 4. **Branch security:** deny **Bypass policies when completing pull requests** and **Bypass policies when pushing** for everyone except break-glass admins. Also deny direct pushes.
 
-5. Azure DevOps doesn't read `.coderabbit/` documents. Instructions and checks live in `.coderabbit.yaml`, so that's the file to guard.
+5. Azure DevOps doesn't currently support v3 or read `.coderabbit/` documents, so `.coderabbit.yaml` is the file to guard.
 
 ## Layer 3: process
 
-- **Validate before merge.** Lint `.coderabbit.yaml` against its JSON schema in CI. On GitHub Cloud, also lint `.coderabbit/**` front matter: allowed fields, `id` format, unique IDs and non-empty bodies. One invalid document makes CodeRabbit reject the whole set.
-- **Make the CodeRabbit status required** on the default branch, and pin `fail_commit_status` in global overrides so a repository can't switch it off.
-- **Audit regularly.** Use `git log -- .coderabbit.yaml .coderabbit/` to see who changed which rule and when. Treat a disabled compliance check (`enabled: false` or `mode: off`) as a review-worthy event.
+- **Validate before merge.** Lint `.coderabbit.yaml` against its JSON schema in CI. On GitHub Cloud, also lint `.coderabbit/**` front matter: allowed fields, `id` format, no duplicate IDs within the same kind (instruction or check) and scope, and a non-empty body for every enabled document. One invalid document makes CodeRabbit reject the whole set.
+- **Make the CodeRabbit status required** on the default branch, and, where global overrides are available (not on the V3 settings preview), pin the status check settings there so a repository can't switch them off.
+- **Audit regularly.** Use `git log -- .coderabbit.yaml .coderabbit.yml ':(glob)**/.coderabbit/**'` to see who changed which rule and when, including in nested `.coderabbit/` folders. Treat a disabled compliance check (`enabled: false` or `mode: off`) as a review-worthy event.
 
 ## Checklist
 
 | Control | GitHub Cloud | GitHub ES | GitLab | Bitbucket | Azure DevOps |
 | --- | :-: | :-: | :-: | :-: | :-: |
 | Pin config source to default branch | ✅ | — | — | — | — |
-| Global overrides for must-not-change keys | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Global overrides for must-not-change keys (not on the V3 settings preview or self-hosted) | ⚠️ | ✅ | ✅ | ✅ | ✅ |
 | Code-owner / required-reviewer approval on config files | ✅ CODEOWNERS | ✅ CODEOWNERS | ✅ CODEOWNERS (Premium) | ⚠️ CODEOWNERS + merge checks or app | ✅ Path-filtered required reviewers |
 | Protect the owners file / policy | ✅ | ✅ | ✅ | ✅ | ✅ (branch security) |
 | No direct pushes, no bypass | ✅ | ✅ | ✅ | ✅ | ✅ |
