@@ -13,6 +13,10 @@ CodeRabbit can be configured with a YAML file (`.coderabbit.yaml`) instead of cl
 
 Each folder has its own `README.md` that explains what its config does.
 
+## Guides
+
+- [`GUARDRAILS.md`](./GUARDRAILS.md): how to stop pull requests from weakening CodeRabbit checks and instructions, on GitHub, GitLab, Bitbucket and Azure DevOps
+
 ## Attribution
 
 - The `v2/` config, and the `v3/` migration of it, are based on the [Enterprise-style CodeRabbit configuration](https://gist.github.com/iantybo/4c872c62df0c256a839ef7299675cff1) by [iantybo](https://github.com/iantybo).
