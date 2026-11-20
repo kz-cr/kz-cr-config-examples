@@ -74,7 +74,7 @@ Guidance that shapes review comments on matching files. An instruction doesn't p
 
 ```markdown
 ---
-id: api-security            # required; up to 50 chars, letters/digits/._-
+id: api-security            # required; up to 50 chars, letters/digits/._-, must start with a letter or digit
 name: API security          # optional display name, 1–50 chars
 paths:                      # optional; omit to match every path in scope
   - "src/api/**"
@@ -92,7 +92,7 @@ A condition evaluated against the pull request, which reports a pass or fail res
 
 ```markdown
 ---
-id: api-auth-required       # required; up to 50 chars, letters/digits/._-
+id: api-auth-required       # required; up to 50 chars, letters/digits/._-, must start with a letter or digit
 name: API auth required     # optional display name, 1–50 chars (defaults to id)
 paths:                      # optional; omit to match every path in scope
   - "src/api/**"
