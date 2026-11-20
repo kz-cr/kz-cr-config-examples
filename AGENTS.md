@@ -13,6 +13,7 @@ A collection of example [CodeRabbit](https://coderabbit.ai) configurations (`.co
 ├── README.md            # Repo overview + table of example folders
 ├── AGENTS.md            # This file
 ├── CLAUDE.md            # Imports AGENTS.md for Claude Code
+├── GUARDRAILS.md        # Protecting CodeRabbit config per Git platform
 ├── v2/                  # Examples using the v2 schema
 │   ├── .coderabbit.yaml
 │   └── README.md
