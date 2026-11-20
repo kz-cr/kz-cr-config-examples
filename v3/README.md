@@ -41,25 +41,70 @@ To check the result, open a test PR and comment `@coderabbitai configuration` to
 
 ## Writing instructions and checks
 
+### Where documents live
+
+Documents sit in a `.coderabbit/` folder **next to `.coderabbit.yaml` at the repo root**. Instructions go in `instructions/` and checks go in `pre-merge-checks/`. You can also add a nested `.coderabbit/` inside a package or service:
+
+```
+your-repo/
+├── .coderabbit.yaml                    # settings (YAML)
+├── .coderabbit/                        # root documents: apply to the whole repo
+│   ├── instructions/
+│   │   └── api-security.md             # instruction example below
+│   └── pre-merge-checks/
+│       └── api-auth-required.md        # check example below
+└── services/
+    └── payments/
+        └── .coderabbit/                # nested documents: apply to services/payments/ only
+            └── instructions/
+                └── api-security.md     # same id as the root file: replaces it for services/payments/
+```
+
+- **Patterns are relative to the folder that contains `.coderabbit/`.** At the root, `src/api/**` matches `src/api/**`. In `services/payments/.coderabbit/`, the same pattern matches `services/payments/src/api/**`.
+- **For each changed file, CodeRabbit uses the closest document with a given `id`.** Documents with different IDs all apply together. A nested document with the same `id` (and kind) replaces the root one for its folder only. Use a different `id` to add a rule without replacing anything.
+- **Nesting doesn't add a level to the settings hierarchy.** Nested documents need no `inheritance: true`, and only the root `.coderabbit.yaml` holds settings.
+
 ### Each file is one document
 
 Every `.md` file has a single front matter block with one `id`, one scope (`paths` / `exclude`) and one `enabled` flag, so **each file defines one instruction or one check**.
 
+#### Instruction: `.coderabbit/instructions/api-security.md`
+
+Guidance that shapes review comments on matching files. An instruction doesn't produce a pass or fail result.
+
 ```markdown
 ---
-id: api-security            # identity: up to 50 chars, letters/digits/._-
+id: api-security            # required; up to 50 chars, letters/digits/._-
 name: API security          # optional display name, 1–50 chars
 paths:                      # optional; omit to match every path in scope
   - "src/api/**"
 exclude:                    # optional; exclusions beat paths
   - "**/*.test.ts"
-enabled: true               # optional; false turns the document off
+enabled: true               # optional; false turns the document off (default true)
 ---
 
 Check that every new endpoint validates its input and requires authentication.
 ```
 
-Checks also accept `mode` (`off`, `warning` or `error`; default `warning`) and `report` (`platform` or `coderabbit`; default `platform`).
+#### Check: `.coderabbit/pre-merge-checks/api-auth-required.md`
+
+A condition evaluated against the pull request, which reports a pass or fail result. Checks take the same fields as instructions, plus `mode` and `report`.
+
+```markdown
+---
+id: api-auth-required       # required; up to 50 chars, letters/digits/._-
+name: API auth required     # optional display name, 1–50 chars (defaults to id)
+paths:                      # optional; omit to match every path in scope
+  - "src/api/**"
+exclude:                    # optional; exclusions beat paths
+  - "**/*.test.ts"
+enabled: true               # optional; false turns the document off (default true)
+mode: warning               # optional: off | warning | error (default warning)
+report: platform            # optional: platform (GitHub Check Run) | coderabbit (Walkthrough) (default platform)
+---
+
+Fail if a new endpoint doesn't validate its input or require authentication.
+```
 
 ### Recommended convention: one file per concern and scope
 
