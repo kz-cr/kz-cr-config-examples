@@ -72,7 +72,7 @@ Always protect the `CODEOWNERS` file itself. Otherwise someone can remove the ru
 
 2. **Protect the default branch** with a branch protection rule or a ruleset:
    - Require a pull request before merging.
-   - **Require review from Code Owners.**
+   - **Require review from Code Owners.** You turn this on for the whole branch, but it only applies to PRs that change a file listed in `CODEOWNERS`. A PR that doesn't touch the CodeRabbit config doesn't need compliance approval. Only other `CODEOWNERS` entries, such as a catch-all `*` rule, would require owners on other PRs. The separate *Require approvals* count applies to every PR.
    - Dismiss stale approvals when new commits are pushed.
    - Require approval of the most recent push (so someone other than the last pusher approves).
    - Require status checks to pass, and add the **CodeRabbit** check.
@@ -126,10 +126,13 @@ Bitbucket trusts **every non-fork PR**, so anyone with write access can change c
 
    The syntax for owner groups differs between editions: Data Center 9.0+ uses reviewer groups, and Cloud uses workspace groups. Check your edition's docs.
 
-2. **Know the gap: Bitbucket's CODEOWNERS adds reviewers but doesn't make their approval mandatory by itself.** Enforce approval with one of these:
-   - **Merge checks** (Bitbucket Cloud **Premium** enforces them): minimum approvals, plus *minimum approvals from default reviewers*, with your compliance group as default reviewers.
-   - **Data Center:** check your version's merge checks for a code-owner approval option.
-   - A **Marketplace app** that adds code-owner approval merge checks, or a **custom merge check** (Forge app on Cloud, plugin on Data Center).
+2. **Know the gap: Bitbucket's CODEOWNERS adds reviewers but doesn't make their approval mandatory by itself.** To enforce compliance approval **only on PRs that change the config**, use one of these:
+   - A **Marketplace app** that adds code-owner approval merge checks.
+   - A **custom merge check** (a Forge app on Cloud, a plugin on Data Center) that blocks the merge when the config files change without compliance approval.
+   - **Data Center:** check your version's merge checks for a built-in code-owner approval option.
+
+   > [!WARNING]
+   > Don't use the built-in *minimum approvals from default reviewers* merge check for this. Default reviewers are set per branch, not per path. With your compliance group as default reviewers, that group would have to approve **every** PR to the branch, not only config changes.
 
 3. **Branch restrictions** on the default branch:
    - Prevent direct pushes, rewriting history and deletion.
@@ -172,7 +175,7 @@ Azure DevOps has no `CODEOWNERS` file. Use **branch policies** on the default br
 | --- | :-: | :-: | :-: | :-: | :-: |
 | Pin config source to default branch | ✅ | — | — | — | — |
 | Global overrides for must-not-change keys (not on the V3 settings preview or self-hosted) | ⚠️ | ✅ | ✅ | ✅ | ✅ |
-| Code-owner / required-reviewer approval on config files | ✅ CODEOWNERS | ✅ CODEOWNERS | ✅ CODEOWNERS (Premium) | ⚠️ CODEOWNERS + merge checks or app | ✅ Path-filtered required reviewers |
+| Code-owner / required-reviewer approval on config files | ✅ CODEOWNERS | ✅ CODEOWNERS | ✅ CODEOWNERS (Premium) | ⚠️ CODEOWNERS + app or custom merge check | ✅ Path-filtered required reviewers |
 | Protect the owners file / policy | ✅ | ✅ | ✅ | ✅ | ✅ (branch security) |
 | No direct pushes, no bypass | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Approvals reset on new commits | ✅ | ✅ | ✅ | ✅ | ✅ |
